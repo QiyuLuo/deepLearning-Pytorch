@@ -99,7 +99,8 @@ def train(net, train_features, train_labels, test_features, test_labels,
         if test_features is not None:
             test_ls.append(log_rmse(net(test_features), test_labels))
         if epoch % 10 == 0:
-            print('train rmse %f, valid rmse %f' % (train_ls[-1], test_ls[-1]))
+            # print('train rmse %f, valid rmse %f' % (train_ls[-1], test_ls[-1]))
+            print('train rmse %f' % (train_ls[-1]))
     return train_ls, test_ls
 
 # 返回第i折交叉验证时所需要的训练和验证数据
@@ -139,5 +140,9 @@ def k_fold(k, x_train, y_train, num_epochs,
 
 if __name__ == '__main__':
 
-    train_l, valid_l = k_fold(k, train_features, train_labels, num_epochs, lr, weight_decay, batch_size)
-    print('%d-fold validation: avg train rmse %f, avg valid rmse %f' % (k, train_l, valid_l))
+    # train_l, valid_l = k_fold(k, train_features, train_labels, num_epochs, lr, weight_decay, batch_size)
+    net = regNet(train_features.shape[1], 1)
+    train_ls, valid_ls = train(net, train_features, train_labels, None, None, num_epochs, lr,
+                               weight_decay, batch_size)
+    # print('%d-fold validation: avg train rmse %f, avg valid rmse %f' % (k, train_ls, valid_ls))
+    # print('%d-fold validation: avg train rmse %f, avg valid rmse' % (k, train_ls))
