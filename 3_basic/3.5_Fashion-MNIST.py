@@ -9,8 +9,9 @@ import d2lzh_pytorch as d2l
 
 batch_size = 256
 
-mnist_train = datasets.FashionMNIST(root='../../data/FashionMNIST', train= True, download=True, transform=transforms.ToTensor())
-mnist_test = datasets.FashionMNIST(root='../../data/FashionMNIST', train=False, download=True, transform=transforms.ToTensor())
+# torch.Size([60000, 28, 28])
+mnist_train = datasets.FashionMNIST(root='../../data', train=True, download=False, transform=transforms.ToTensor())
+mnist_test = datasets.FashionMNIST(root='../../data', train=False, download=False, transform=transforms.ToTensor())
 
 if sys.platform.startswith('win'):
     num_workers = 0

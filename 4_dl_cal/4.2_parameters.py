@@ -16,7 +16,6 @@ for name, parm in net.named_parameters():
     if "bias" in name:
         init.constant_(parm, 0)
         print(name, parm.data)
-nn.Parameter
 """
 
 # parm类型是torch.nn.parameter.Parameter,它是tensor的子类。
@@ -45,3 +44,10 @@ for name, param in net2.named_parameters():
 
 print(id(net2[0]) == id(net2[1]))
 print(id(net2[0].weight) == id(net2[1].weight))
+
+x = torch.ones(2, 2)
+y = net2(x).sum()
+print(y)
+y.backward()
+print(net2[0].weight.grad)
+print(net2[1].weight.grad)

@@ -12,7 +12,7 @@
       <paths name="wb@192.168.1.101:102">
         <serverdata>
           <mappings>
-            <mapping deploy="/tmp/pycharm_project_13" local="$PROJECT_DIR$" />
+            <mapping deploy="/luoqiyu/deepLearning-Pytorch" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
