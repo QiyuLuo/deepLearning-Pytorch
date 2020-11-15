@@ -9,7 +9,7 @@ import d2lzh_pytorch as d2l
 
 batch_size = 128
 lr = 0.001
-num_epochs = 5
+num_epochs = 10
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 """
 激活函数relu

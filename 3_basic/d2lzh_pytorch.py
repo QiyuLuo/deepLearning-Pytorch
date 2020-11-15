@@ -7,6 +7,16 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import sys
 import time
+import torch.nn.functional as F
+
+class GlobalAvgPool2d(nn.Module):
+
+    def __init__(self):
+        super(GlobalAvgPool2d, self).__init__()
+    def forward(self, x):
+        # 通道数看做特征数，长*宽看做样本数，将所有样本在每个通道上分别求平均值，得到最后的每个特征的概率。(在输出层即预测的种类概率)
+        return F.avg_pool2d(x, kernel_size=x.size()[2:])
+
 # 接收数组x, 核数组k,输出数组y. 单通道
 def corr2d(x, k):
     h, w = k.shape
