@@ -104,9 +104,9 @@ def evaluate_accuracy(data_iter, net, device=None):
         device = list(net.parameters())[0].device
     acc_sum, n = 0.0, 0
     with torch.no_grad():
+        net.eval() # 设置测试模式，使得module.training属性为False
         for i, (feature, label) in enumerate(data_iter):
             if isinstance(net, torch.nn.Module):
-                net.eval()
                 feature = feature.to(device)
                 label = label.to(device)
                 output = net(feature)
@@ -170,15 +170,16 @@ def train_ch5(net, train_iter, test_iter, batch_size, optimizer, device, num_epo
     print("training on ", device)
     loss = torch.nn.CrossEntropyLoss()
     for epoch in range(num_epochs):
+        net.train()
         train_l_sum, train_acc_sum, n, batch_count, start = 0.0, 0.0, 0, 0, time.time()
         for X, y in train_iter:
             X = X.to(device)
             y = y.to(device)
             y_hat = net(X)
             l = loss(y_hat, y)
-            optimizer.zero_grad()
             l.backward()
             optimizer.step()
+            optimizer.zero_grad()
             train_l_sum += l.cpu().item() # 得到训练的损失，均值
             train_acc_sum += (y_hat.argmax(dim=1) == y).sum().cpu().item()
             n += y.shape[0]
