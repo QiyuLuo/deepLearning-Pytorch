@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="wb@192.168.1.101:102" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
+  <component name="PublishConfigData" autoUpload="Always" serverName="pcalab" remoteFilesAllowedToDisappearOnAutoupload="false" autoUploadExternalChanges="true">
     <serverData>
       <paths name="lab">
         <serverdata>
           <mappings>
-            <mapping deploy="/luoqiyu" local="$PROJECT_DIR$/.." web="/" />
+            <mapping deploy="/luoqiyu" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="pcalab">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/luoqiyu/deepLearning-Pytorch" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

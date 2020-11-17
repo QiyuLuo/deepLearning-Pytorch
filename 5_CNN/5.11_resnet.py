@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = '3'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 import torch
 from torch import nn, optim
 import torch.nn.functional as F
@@ -7,7 +7,7 @@ import sys
 sys.path.append('../3_basic')
 import d2lzh_pytorch as d2l
 
-batch_size = 128
+batch_size = 256
 lr = 0.001
 num_epochs = 5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -43,15 +43,29 @@ def resnet_block(in_channels, out_channels, num_residuals, first_block=False):
 
     return nn.Sequential(*blk)
 
+# 这里每个模块里有4个卷积层（不计算1×1卷积层），加上最开始的卷积层和最后的全连接层，共计18层。这个模型通常也被称为ResNet-18。
 net = nn.Sequential(
         nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3),
         nn.BatchNorm2d(64),
         nn.ReLU(),
         nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
+# 为ResNet加入残差块，每个模块使用两个残差快
 net.add_module("resnet_block1", resnet_block(64, 64, 2, first_block=True))
 net.add_module("resnet_block2", resnet_block(64, 128, 2))
 net.add_module("resnet_block3", resnet_block(128, 256, 2))
 net.add_module("resnet_block4", resnet_block(256, 512, 2))
 
+net.add_module("global_avg_pool", d2l.GlobalAvgPool2d())
+net.add_module("fc", nn.Sequential(d2l.FlattenLayer(), nn.Linear(512, 10)))
 
+
+x = torch.rand((1, 1, 224, 224))
+for name, layer in net.named_children():
+    x = layer(x)
+    print(name, ' output shape:\t', x.shape)
+
+train_iter, test_iter = d2l.load_data_fashion_mnist(batch_size, resize=96)
+optimizer = torch.optim.Adam(net.parameters(), lr)
+if __name__ == '__main__':
+    d2l.train_ch5(net, train_iter, test_iter, batch_size, optimizer, device, num_epochs)
