@@ -18,7 +18,7 @@ class Residual(nn.Module):
         super(Residual, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=stride)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
-        if use_1x1conv:
+        if use_1x1conv: # 用来改变通道或者长宽
             self.conv3 = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride)
         else:
             self.conv3 = None
@@ -50,7 +50,8 @@ net = nn.Sequential(
         nn.ReLU(),
         nn.MaxPool2d(kernel_size=3, stride=2, padding=1))
 
-# 为ResNet加入残差块，每个模块使用两个残差快
+# 为ResNet加入残差块，每个模块使用两个残差快,由于第一个模块之前pooling步幅为2所以第一个模块不需要高宽减半，
+# 其余模块channel加倍，高宽减半。
 net.add_module("resnet_block1", resnet_block(64, 64, 2, first_block=True))
 net.add_module("resnet_block2", resnet_block(64, 128, 2))
 net.add_module("resnet_block3", resnet_block(128, 256, 2))

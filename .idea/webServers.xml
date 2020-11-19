@@ -9,8 +9,8 @@
           </advancedOptions>
         </fileTransfer>
       </webServer>
-      <webServer id="32a1e9f2-b679-4dd0-8d1c-117d27c44bc1" name="pcalab">
-        <fileTransfer accessType="SFTP" host="172.26.1.174" port="22" sshConfigId="1683b46f-efbf-411d-ab83-1310dbf30c04" sshConfig="root@172.26.1.174:22 password">
+      <webServer id="6d657dfa-ed91-4bb8-8094-78086f95714f" name="PCALab">
+        <fileTransfer accessType="SFTP" host="172.26.1.174" port="22" sshConfigId="133a8312-6354-400a-8e25-41cca59efa2c" sshConfig="root@172.26.1.174:22 password">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

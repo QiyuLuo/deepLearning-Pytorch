@@ -31,5 +31,24 @@ class DenseBlock(nn.Module):
     def forward(self, x):
         for blk in self.net:
             y = blk(x)
-            x = torch.cat((x, y), dim=1)
+            x = torch.cat((x, y), dim=1) # 在通道维上将输入和输出连接
         return x
+
+
+def transition_block(in_channels, out_channels):
+    blk = nn.Sequential(
+        nn.BatchNorm2d(in_channels),
+        nn.ReLU(),
+        nn.Conv2d(in_channels, out_channels, kernel_size=1),
+        nn.AvgPool2d(kernel_size=2, stride=2)
+    )
+    return blk
+
+blk = DenseBlock(2, 3, 10)
+x = torch.rand(4, 3, 8, 8)
+y = blk(x)
+print(y.shape)
+
+blk = transition_block(23, 10)
+print(blk(y).shape)
+

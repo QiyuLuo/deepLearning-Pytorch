@@ -11,7 +11,7 @@ torch.set_default_tensor_type(torch.FloatTensor)
 train_data = pd.read_csv('E:/data/kaggle_house/train.csv') # (1460, 81)
 test_data = pd.read_csv('e:/data/kaggle_house/test.csv') # (1459, 80)
 
-k, num_epochs, lr, weight_decay, batch_size = 5, 100, 3, 0, 64
+k, num_epochs, lr, weight_decay, batch_size = 5, 100, 0.2, 0, 64
 
 # 原始数据的第一个特征是id,不能作为特征来推断测试集所以总特征只有79个，最后一个是价格
 # print(train_data.shape)
