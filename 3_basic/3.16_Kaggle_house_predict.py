@@ -11,7 +11,7 @@ torch.set_default_tensor_type(torch.FloatTensor)
 train_data = pd.read_csv('E:/data/kaggle_house/train.csv') # (1460, 81)
 test_data = pd.read_csv('e:/data/kaggle_house/test.csv') # (1459, 80)
 
-k, num_epochs, lr, weight_decay, batch_size = 5, 100, 5, 0, 64
+k, num_epochs, lr, weight_decay, batch_size = 5, 100, 0.2, 0, 64
 
 # 原始数据的第一个特征是id,不能作为特征来推断测试集所以总特征只有79个，最后一个是价格
 # print(train_data.shape)
@@ -87,20 +87,22 @@ def train(net, train_features, train_labels, test_features, test_labels,
     dataset = torch.utils.data.TensorDataset(train_features, train_labels)
     data_iter = torch.utils.data.DataLoader(dataset, batch_size, shuffle=True)
     optimizer = torch.optim.Adam(params=net.parameters(), lr=lr, weight_decay=weight_decay)
+    net = net.float()
     for epoch in range(num_epochs):
         for feature, label in data_iter:
             output = net(feature)
+            optimizer.zero_grad()
             l = log_rmse(output, label)
             # l = log_rmse(net, feature, label)
-            optimizer.zero_grad()
             l.backward()
             optimizer.step()
-        train_ls.append(log_rmse(net(train_features), train_labels))
-        if test_features is not None:
-            test_ls.append(log_rmse(net(test_features), test_labels))
+        with torch.no_grad():
+            train_ls.append(log_rmse(net(train_features), train_labels))
+            if test_features is not None:
+                test_ls.append(log_rmse(net(test_features), test_labels))
         if epoch % 10 == 0:
-            # print('train rmse %f, valid rmse %f' % (train_ls[-1], test_ls[-1]))
-            print('train rmse %f' % (train_ls[-1]))
+            print('train rmse %f, valid rmse %f' % (train_ls[-1], test_ls[-1]))
+            # print('train rmse %f' % (train_ls[-1]))
     return train_ls, test_ls
 
 # 返回第i折交叉验证时所需要的训练和验证数据
@@ -140,9 +142,9 @@ def k_fold(k, x_train, y_train, num_epochs,
 
 if __name__ == '__main__':
 
-    # train_l, valid_l = k_fold(k, train_features, train_labels, num_epochs, lr, weight_decay, batch_size)
-    net = regNet(train_features.shape[1], 1)
-    train_ls, valid_ls = train(net, train_features, train_labels, None, None, num_epochs, lr,
-                               weight_decay, batch_size)
-    # print('%d-fold validation: avg train rmse %f, avg valid rmse %f' % (k, train_ls, valid_ls))
+    train_l, valid_l = k_fold(k, train_features, train_labels, num_epochs, lr, weight_decay, batch_size)
+    # net = regNet(train_features.shape[1], 1)
+    # train_ls, valid_ls = train(net, train_features, train_labels, None, None, num_epochs, lr,
+    #                            weight_decay, batch_size)
+    print('%d-fold validation: avg train rmse %f, avg valid rmse %f' % (k, train_l, valid_l))
     # print('%d-fold validation: avg train rmse %f, avg valid rmse' % (k, train_ls))

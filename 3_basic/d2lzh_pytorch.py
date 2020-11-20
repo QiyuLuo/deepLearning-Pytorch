@@ -6,6 +6,26 @@ import torch.nn as nn
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import sys
+import time
+import torch.nn.functional as F
+
+class GlobalAvgPool2d(nn.Module):
+
+    def __init__(self):
+        super(GlobalAvgPool2d, self).__init__()
+    def forward(self, x):
+        # 通道数看做特征数，长*宽看做样本数，将所有样本在每个通道上分别求平均值，得到最后的每个特征的概率。(在输出层即预测的种类概率)
+        return F.avg_pool2d(x, kernel_size=x.size()[2:])
+
+# 接收数组x, 核数组k,输出数组y. 单通道
+def corr2d(x, k):
+    h, w = k.shape
+    y = torch.zeros(x.shape[0] - h + 1, x.shape[1] - w + 1)
+    for i in range(y.shape[0]):
+        for j in range(y.shape[1]):
+            y[i][j] = (x[i: i + h, j: j + w] * k).sum()
+    return y
+
 def use_svg_display():
     # 用矢量图显示
     display.set_matplotlib_formats('svg')
@@ -54,12 +74,17 @@ def show_fashion_mnist(images, labels):
         f.axes.get_yaxis().set_visible(False)
     plt.show()
 
-def load_data_fashion_mnist(batch_size):
-    mnist_train = datasets.FashionMNIST(root='../../data/FashionMNIST', train=True, download=True,
-                                        transform=transforms.ToTensor())
-    mnist_test = datasets.FashionMNIST(root='../../data/FashionMNIST', train=False, download=True,
-                                       transform=transforms.ToTensor())
-    print('fashionMnist train len = ', len(mnist_train))
+def load_data_fashion_mnist(batch_size, resize=None):
+    trans = []
+    if resize:
+        trans.append(transforms.Resize(size=resize))
+    trans.append(transforms.ToTensor())
+    transform = transforms.Compose(trans)
+    mnist_train = datasets.FashionMNIST(root='../../data', train=True, download=True,
+                                        transform=transform)
+    mnist_test = datasets.FashionMNIST(root='../../data', train=False, download=True,
+                                       transform=transform)
+    print('fashionMnist train len = ', len(mnist_train), mnist_train.data.shape)
     print('fashionMnist test  len = ', len(mnist_test))
     if sys.platform.startswith('win'):
         num_workers = 0
@@ -71,14 +96,25 @@ def load_data_fashion_mnist(batch_size):
     return train_iter, test_iter
 
 def accuracy(y_hat, y):
-    return y_hat.argmax(dim=1).eq(y).float().mean().item() # 返回一个数值
+    return y_hat.argmax(dim=1).eq(y).float().sum().item() # 返回一个数值
 
-def evaluate_accuracy(data_iter, net):
+def evaluate_accuracy(data_iter, net, device=None):
+    if device is None and isinstance(net, torch.nn.Module):
+        # 如果没指定device就使用net的device
+        device = list(net.parameters())[0].device
     acc_sum, n = 0.0, 0
-    for i, (feature, label) in enumerate(data_iter):
-        output = net(feature)
-        acc_sum += accuracy(output, label)
-        n += 1
+    with torch.no_grad():
+        net.eval() # 设置测试模式，使得module.training属性为False
+        for i, (feature, label) in enumerate(data_iter):
+            if isinstance(net, torch.nn.Module):
+                feature = feature.to(device)
+                label = label.to(device)
+                output = net(feature)
+                acc_sum += output.argmax(dim = 1).eq(label).sum().item()
+            else: # 自定义的模型
+                output = net(feature)
+                acc_sum += accuracy(output, label)
+            n += label.shape[0]
     return acc_sum / n
 
 class FlattenLayer(nn.Module):
@@ -103,6 +139,7 @@ def train_softmax(net, train_iter, test_iter, loss, num_epochs, batch_size,
     for epoch in range(num_epochs):
 
         train_l_sum, train_acc_sum, n = 0.0, 0.0, 0
+        start = time.time()
         for feature, label in train_iter:
             output = net(feature)
             l = loss(output, label).sum() # 得到的是所有样本的损失
@@ -125,8 +162,30 @@ def train_softmax(net, train_iter, test_iter, loss, num_epochs, batch_size,
                 print('label size = ', label.shape, ' output.argmax(dim=1) size = ', output.argmax(dim=1).shape)
             n += label.shape[0]
         test_acc = evaluate_accuracy(test_iter, net)
-        print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f'
-              % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc))
+        print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f, time %.1f sec'
+              % (epoch + 1, train_l_sum / n, train_acc_sum / n, test_acc, time.time() - start))
 
+def train_ch5(net, train_iter, test_iter, batch_size, optimizer, device, num_epochs):
+    net = net.to(device)
+    print("training on ", device)
+    loss = torch.nn.CrossEntropyLoss()
+    for epoch in range(num_epochs):
+        net.train()
+        train_l_sum, train_acc_sum, n, batch_count, start = 0.0, 0.0, 0, 0, time.time()
+        for X, y in train_iter:
+            X = X.to(device)
+            y = y.to(device)
+            y_hat = net(X)
+            l = loss(y_hat, y)
+            l.backward()
+            optimizer.step()
+            optimizer.zero_grad()
+            train_l_sum += l.cpu().item() # 得到训练的损失，均值
+            train_acc_sum += (y_hat.argmax(dim=1) == y).sum().cpu().item()
+            n += y.shape[0]
+            batch_count += 1
+        test_acc = evaluate_accuracy(test_iter, net)
+        print('epoch %d, loss %.4f, train acc %.3f, test acc %.3f, time %.1f sec'
+              % (epoch + 1, train_l_sum / batch_count, train_acc_sum / n, test_acc, time.time() - start))
 
 
