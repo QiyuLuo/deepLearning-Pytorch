@@ -16,8 +16,8 @@ lr = 0.1
 log_interval = 10
 
 # 生成数据集
-train_data = datasets.FashionMNIST(root='../../data/FashionMNIST', train= True, download=True, transform=transforms.ToTensor())
-test_data = datasets.FashionMNIST(root='../../data/FashionMNIST', train=False, download=True, transform=transforms.ToTensor())
+train_data = datasets.FashionMNIST(root='../../data', train= True, download=True, transform=transforms.ToTensor())
+test_data = datasets.FashionMNIST(root='../../data', train=False, download=True, transform=transforms.ToTensor())
 
 if sys.platform.startswith('win'):
     num_workers = 0

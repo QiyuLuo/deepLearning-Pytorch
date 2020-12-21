@@ -1,6 +1,6 @@
 import time
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = '3'
+os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 import torch
 from torch import nn, optim
 import sys
